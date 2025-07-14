@@ -2,15 +2,15 @@
 import os, sys, time, subprocess
 from datetime import datetime
 from colorama import Fore, Style, init
-init()
 import requests
+
+init()
 
 CURRENT_VERSION = "6.3"
 RAW_BASE = "https://raw.githubusercontent.com/Melon763/de-tracker/main"
 VERSION_URL = RAW_BASE + "/version.txt"
 SCRIPT_URL = RAW_BASE + "/de-tracker-v6.3.py"
 
-# Auto-update logic
 def check_for_update():
     try:
         remote = requests.get(VERSION_URL).text.strip()
@@ -27,11 +27,9 @@ def check_for_update():
 
 check_for_update()
 
-# Logging setup
 os.makedirs("logs", exist_ok=True)
 log_file = f"logs/log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
 
-# Login
 USERNAME = "admin"
 def login():
     os.system("clear")
@@ -39,7 +37,7 @@ def login():
     user = input(Fore.YELLOW + "Enter username to continue: " + Style.RESET_ALL)
     if user != USERNAME:
         print(Fore.RED + "Access Denied!" + Style.RESET_ALL)
-        exit()
+        sys.exit()
     print(Fore.GREEN + f"Access Granted. Welcome, {user}!" + Style.RESET_ALL)
     time.sleep(1)
 
@@ -50,7 +48,6 @@ def log_action(action):
 def phone_lookup():
     num = input("\nEnter phone number (with country code): ")
     print(Fore.CYAN + "Looking up number info..." + Style.RESET_ALL)
-    time.sleep(1)
     subprocess.call(["termux-open-url", f"https://www.numlookup.com/{num}"])
     log_action(f"Phone lookup: {num}")
 
