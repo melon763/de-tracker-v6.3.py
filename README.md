@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+import os, sys, time, subprocess
+from datetime import datetime
+from colorama import Fore, Style, init
+init()
+import requests
+
+CURRENT_VERSION = "6.3"
+RAW_BASE = "https://raw.githubusercontent.com/Melon763/de-tracker/main"
+VERSION_URL = RAW_BASE + "/version.txt"
+SCRIPT_URL = RAW_BASE + "/de-tracker-v6.3.py"
+
+# Auto-update logic
+def check_for_update():
+    try:
+        remote = requests.get(VERSION_URL).text.strip()
+        if remote != CURRENT_VERSION:
+            print(Fore.YELLOW + f"Updating to v{remote}..." + Style.RESET_ALL)
+            code = requests.get(SCRIPT_URL).text
+            with open(__file__, "w") as f:
+                f.write(code)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+        else:
+            print(Fore.GREEN + f"✔ Running latest v{CURRENT_VERSION}" + Style.RESET_ALL)
+    except Exception as e:
+        print(Fore.RED + f"Update check failed: {e}" + Style.RESET_ALL)
+
+check_for_update()
+
+# Logging setup
+os.makedirs("logs", exist_ok=True)
+log_file = f"logs/log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+
+# Login
+USERNAME = "admin"
+def login():
+    os.system("clear")
+    print(Fore.CYAN + "==== DE‑TRACKER v6.3 ====" + Style.RESET_ALL)
+    user = input(Fore.YELLOW + "Enter username to continue: " + Style.RESET_ALL)
+    if user != USERNAME:
+        print(Fore.RED + "Access Denied!" + Style.RESET_ALL)
+        exit()
+    print(Fore.GREEN + f"Access Granted. Welcome, {user}!" + Style.RESET_ALL)
+    time.sleep(1)
+
+def log_action(action):
+    with open(log_file, 'a') as f:
+        f.write(f"[{datetime.now()}] {action}\n")
+
+def phone_lookup():
+    num = input("\nEnter phone number (with country code): ")
+    print(Fore.CYAN + "Looking up number info..." + Style.RESET_ALL)
+    time.sleep(1)
+    subprocess.call(["termux-open-url", f"https://www.numlookup.com/{num}"])
+    log_action(f"Phone lookup: {num}")
+
+def gps_tracker():
+    print(Fore.CYAN + "\nLaunching Seeker..." + Style.RESET_ALL)
+    os.system("git clone https://github.com/thewhiteh4t/seeker > /dev/null 2>&1")
+    os.system("cd seeker && bash install.sh && python3 seeker.py")
+    log_action("Launched Seeker")
+
+def ip_tools():
+    ip = input("\nEnter IP or domain: ")
+    print(Fore.YELLOW + "Running Whois..." + Style.RESET_ALL)
+    os.system(f"whois {ip} | tee -a {log_file}")
+    print(Fore.YELLOW + "Running Nmap..." + Style.RESET_ALL)
+    os.system(f"nmap {ip} | tee -a {log_file}")
+    print(Fore.YELLOW + "Running Traceroute..." + Style.RESET_ALL)
+    os.system(f"traceroute {ip} | tee -a {log_file}")
+    log_action(f"Scanned IP/domain: {ip}")
+
+def osint_lookup():
+    username = input("\nEnter username to check on Telegram/Instagram/LinkedIn: ")
+    subprocess.call(["termux-open-url", f"https://t.me/{username}"])
+    subprocess.call(["termux-open-url", f"https://www.instagram.com/{username}"])
+    subprocess.call(["termux-open-url", f"https://www.linkedin.com/in/{username}"])
+    log_action(f"OSINT lookup: {username}")
+
+def password_cracker():
+    zipfile = input("\nEnter path to ZIP file: ")
+    wordlist = input("Enter path to wordlist: ")
+    print(Fore.CYAN + "Cracking..." + Style.RESET_ALL)
+    os.system(f"fcrackzip -u -D -p {wordlist} {zipfile} | tee -a {log_file}")
+    log_action(f"Password crack attempt on: {zipfile}")
+
+def menu():
+    while True:
+        os.system("clear")
+        print(Fore.CYAN + "=== DE‑TRACKER v6.3 MAIN MENU ===" + Style.RESET_ALL)
+        print(Fore.GREEN + "1." + Style.RESET_ALL + " Phone Number Lookup")
+        print(Fore.GREEN + "2." + Style.RESET_ALL + " GPS Tracker (Seeker)")
+        print(Fore.GREEN + "3." + Style.RESET_ALL + " IP/Domain Tools")
+        print(Fore.GREEN + "4." + Style.RESET_ALL + " Telegram/Instagram/LinkedIn OSINT")
+        print(Fore.GREEN + "5." + Style.RESET_ALL + " Password Cracker (ZIP)")
+        print(Fore.GREEN + "0." + Style.RESET_ALL + " Exit")
+        choice = input(Fore.YELLOW + "Select an option: " + Style.RESET_ALL)
+        if choice == '1': phone_lookup()
+        elif choice == '2': gps_tracker()
+        elif choice == '3': ip_tools()
+        elif choice == '4': osint_lookup()
+        elif choice == '5': password_cracker()
+        elif choice == '0':
+            print(Fore.GREEN + "Goodbye!" + Style.RESET_ALL)
+            break
+        else:
+            print(Fore.RED + "Invalid choice." + Style.RESET_ALL)
+        input(Fore.CYAN + "\nPress Enter to return to menu..." + Style.RESET_ALL)
+
+if __name__ == "__main__":
+    login()
+    menu()
